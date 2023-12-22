@@ -24,7 +24,7 @@ for ( i = 0; i < 4096; i++)
 for ( j = 0; j < 8; j++)
 for ( k = 0; k < 4096; k++)
 {
-A[k][i]=A[k][i]+A[k][i+5]+90;
+A[k][i]=A[k][i]+A[k][i]+90;
 }
 
 clock_t stop = clock();

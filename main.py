@@ -1,6 +1,6 @@
 import os
 from itertools import permutations
-from ast_tree_parser import parse_ast_tree
+from ast_tree_parser import AST_Parser
 from pycparser import parse_file
 
 
@@ -9,7 +9,8 @@ def return_features_json(path: str = r'./test_dir/test.c') -> dict:
                           cpp_args=['-E',
                                     r'-I./fake_libc_include',
                                     r'-I./test_dir'])
-    return parse_ast_tree(ast_tree)
+    parser = AST_Parser()
+    return parser.parse_ast_tree(ast_tree)
 
 
 if __name__ == "__main__":
