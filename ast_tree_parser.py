@@ -3,7 +3,8 @@ from pycparser.c_ast import *
 class AST_Parser():
     def __init__(self) -> None:
         self.pragma_loops = []
-
+        self.loop_content = []
+        self.loop_dependencies = []
 
     def get_main_content(self, ext):
         """zwraca zawartość maina"""
@@ -43,40 +44,46 @@ class AST_Parser():
             if item.__class__ is For:
                 self.dig_for_a_pragma_loop(item)
 
-    def explore_ArrayRef(self, array_ref: ArrayRef) ->list:
-        if array_ref.name.__class__ is ArrayRef:
-            return self.explore_ArrayRef(array_ref.name) + [array_ref.subscript.name]
-        elif array_ref.name.__class__ is ID:
-            return [array_ref.name.name, array_ref.subscript.name]
+    def explore(self, node):
+        method = 'explore_' + node.__class__.__name__
+        visitor = getattr(self, method, self.generic_explore)
+        return visitor(node)
 
-    def explore_BinaryOp(self, binary_op, content):
+    def generic_explore(self, node):
+        print(f"[ERROR] NO DEFINED METHOD FOR {node.__class__.__name__}")
+        print(node)
+
+    def explore_ID(self, id):
+        return id.name
+    
+    def explore_Constant(self, constant):
+        if constant.type == 'int':
+            return int(constant.value)
+        else:
+            return float(constant.value)
+
+    def explore_ArrayRef(self, array_ref: ArrayRef) ->list:
+        return [self.explore(array_ref.name), self.explore(array_ref.subscript)]
+        
+    def explore_BinaryOp(self, binary_op):
         # TODO case z i+5
         # left
-        if binary_op.left.__class__ is BinaryOp:
-            self.explore_BinaryOp(binary_op.left, content)
-        elif binary_op.left.__class__ is ArrayRef:
-            content.append(self.explore_ArrayRef(binary_op.left))
+
+        left = self.explore(binary_op.left)
 
         # right
-        if binary_op.right.__class__ is BinaryOp:
-            self.explore_BinaryOp(binary_op.right, content)
-        elif binary_op.right.__class__ is Constant:
-            # TODO int czy float?
-            content.append(int(binary_op.right.value))
-        elif binary_op.right.__class__ is ArrayRef:
-            content.append(self.explore_ArrayRef(binary_op.right))
+        right = self.explore(binary_op.right)
+        return [left, right]
 
     def explore_dependencies(self, item, dependency_content):
         for assignment in item.block_items:
             array_access = []
             # lvalue
-            array_access.append(self.explore_ArrayRef(assignment.lvalue))
+            array_access.append(self.explore(assignment.lvalue))
 
             # rvalue
-            if assignment.rvalue.__class__ is BinaryOp:
-                self.explore_BinaryOp(assignment.rvalue, array_access)
-            elif assignment.rvalue.__class__ is ArrayRef:
-                array_access.append(self.explore_ArrayRef(assignment.rvalue))
+            array_access.append(self.explore(assignment.rvalue))
+
             dependency_content.append(array_access)
 
     def get_loop_bounds(self, init, cond, next):
