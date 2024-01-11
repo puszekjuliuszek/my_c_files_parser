@@ -63,21 +63,16 @@ class AST_Parser():
             return float(constant.value)
 
     def explore_ArrayRef(self, array_ref: ArrayRef) ->list:
-        return [self.explore(array_ref.name), self.explore(array_ref.subscript)]
+        return ['ArrayRef', self.explore(array_ref.name), self.explore(array_ref.subscript)]
         
     def explore_BinaryOp(self, binary_op):
-        # TODO case z i+5
-        # left
-
         left = self.explore(binary_op.left)
-
-        # right
         right = self.explore(binary_op.right)
-        return [left, right]
+        return ['BinaryOp',left, right]
 
     def explore_dependencies(self, item, dependency_content):
         for assignment in item.block_items:
-            array_access = []
+            array_access = ['Assignment']
             # lvalue
             array_access.append(self.explore(assignment.lvalue))
 
