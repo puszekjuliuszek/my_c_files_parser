@@ -1,6 +1,6 @@
 import os
 import sys
-sys.path.append("/".join(os.path.dirname(os.path.abspath(__file__)).split("/")[0:-1]))
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from itertools import permutations
 from ast_tree_parser import AST_Parser
 from pycparser import parse_file
